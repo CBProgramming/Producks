@@ -24,12 +24,14 @@ namespace Producks.Web.Controllers
         public async Task<IActionResult> GetBrands()
         {
             var brands = await _context.Brands
+                .Where(b => b.Active == true)
                                        .Select(b => new BrandDto
                                        {
                                            Id = b.Id,
                                            Name = b.Name,
                                            Active = b.Active
                                        })
+                                       .Where(b => b.Active == true)
                                        .ToListAsync();
             return Ok(brands);
         }
@@ -52,7 +54,9 @@ namespace Producks.Web.Controllers
         [HttpGet("api/ProductsByCategory")]
         public async Task<IActionResult> GetProductsByCategory(string category, string brand, int? priceLow, int? priceHigh)
         {
-            var products = await _context.Products.Select(p => new ProductDto
+            var products = await _context.Products
+                .Where(p => p.Active == true)
+                .Select(p => new ProductDto
             {
                 Id = p.Id,
                 CategoryId = p.CategoryId,
@@ -64,6 +68,7 @@ namespace Producks.Web.Controllers
                 Category = p.Category,
                 Brand = p.Brand
             })
+
                 
                 .ToListAsync();
             if (category != null)

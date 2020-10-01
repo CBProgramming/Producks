@@ -21,7 +21,7 @@ namespace Producks.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Categories.ToListAsync());
+            return View(await _context.Categories.Where(c => c.Active == true).ToListAsync());
         }
 
         public async Task<IActionResult> ProductsByCategory (int? id)
@@ -37,6 +37,7 @@ namespace Producks.Web.Controllers
             }
             var products = await _context.Products
                 .Where(p => p.Category.Id == category.Id)
+                .Where(p => p.Active == true)
                 .ToListAsync();
             
 

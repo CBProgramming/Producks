@@ -1,12 +1,8 @@
 ﻿using System;
 namespace Producks.Web.Models
 {
-    public class CategoryDto
+    public class CategoryVM
     {
-        public CategoryDto()
-        {
-        }
-
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }

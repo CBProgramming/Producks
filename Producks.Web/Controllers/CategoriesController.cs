@@ -33,6 +33,7 @@ namespace Producks.Web.Controllers
             }
 
             var category = await _context.Categories
+                .Where(m => m.Active == true)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (category == null)
             {
@@ -124,6 +125,7 @@ namespace Producks.Web.Controllers
             }
 
             var category = await _context.Categories
+                .Where(c => c.Active == true)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (category == null)
             {
@@ -139,7 +141,7 @@ namespace Producks.Web.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var category = await _context.Categories.FindAsync(id);
-            _context.Categories.Remove(category);
+            category.Active = false;
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
