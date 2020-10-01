@@ -33,5 +33,60 @@ namespace Producks.Web.Controllers
                                        .ToListAsync();
             return Ok(brands);
         }
+
+        // GET: api/Categories
+        [HttpGet("api/Categories")]
+        public async Task<IActionResult> GetCategories()
+        {
+            var categories = await _context.Categories.Select(c => new CategoryDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description
+                })
+                .ToListAsync();
+            return Ok(categories);
+        }
+
+        // GET api/Products by category
+        [HttpGet("api/ProductsByCategory")]
+        public async Task<IActionResult> GetProductsByCategory(string category, string brand, int? priceLow, int? priceHigh)
+        {
+            var products = await _context.Products.Select(p => new ProductDto
+            {
+                Id = p.Id,
+                CategoryId = p.CategoryId,
+                BrandId = p.BrandId,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                StockLevel = p.StockLevel,
+                Category = p.Category,
+                Brand = p.Brand
+            })
+                
+                .ToListAsync();
+            if (category != null)
+            {
+                products = products.Where(p => p.Category.ToString().Equals(category)).ToList();
+            }
+            if (brand != null)
+            {
+                products = products.Where(p => p.Brand.ToString().Equals(brand)).ToList();
+            }
+            if (priceLow > 0)
+            {
+                products = products.Where(p => p.Price >= priceLow).ToList();
+            }
+            if (priceHigh > 0)
+            {
+                products = products.Where(p => p.Price <= priceHigh).ToList();
+            }
+
+            return Ok(products);
+        }
+
     }
+
+
 }
