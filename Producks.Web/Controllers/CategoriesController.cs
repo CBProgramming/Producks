@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Producks.Data;
+using Producks.Web.Models;
 
 namespace Producks.Web.Controllers
 {
@@ -21,7 +22,18 @@ namespace Producks.Web.Controllers
         // GET: Categories
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Categories.ToListAsync());
+            var categories = await _context.Categories
+               .Select(c => new CategoryVM
+               {
+                   Id = c.Id,
+                   Name = c.Name,
+                   Description = c.Description,
+                   Active = c.Active
+               })
+               .Where(b => b.Active == true)
+               .ToListAsync();
+            return View(categories);
+            //return View(await _context.Categories.ToListAsync());
         }
 
         // GET: Categories/Details/5
@@ -32,9 +44,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            var category = await _context.Categories
-                .Where(m => m.Active == true)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            CategoryVM category = getCategoryVM(id).Result;
             if (category == null)
             {
                 return NotFound();
@@ -54,11 +64,11 @@ namespace Producks.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,Active")] Category category)
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,Active")] CategoryVM category)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(category);
+                _context.Add(generateCategory(category));
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -73,7 +83,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            var category = await _context.Categories.FindAsync(id);
+            CategoryVM category = getCategoryVM(id).Result;
             if (category == null)
             {
                 return NotFound();
@@ -86,18 +96,18 @@ namespace Producks.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Active")] Category category)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Active")] CategoryVM category)
         {
             if (id != category.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && category.Name != null && category.Description != null)
             {
                 try
                 {
-                    _context.Update(category);
+                    _context.Update(generateCategory(category));
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -123,10 +133,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-
-            var category = await _context.Categories
-                .Where(c => c.Active == true)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            CategoryVM category = getCategoryVM(id).Result;
             if (category == null)
             {
                 return NotFound();
@@ -149,6 +156,30 @@ namespace Producks.Web.Controllers
         private bool CategoryExists(int id)
         {
             return _context.Categories.Any(e => e.Id == id);
+        }
+
+        public async Task<CategoryVM> getCategoryVM(int? id)
+        {
+            return await _context.Categories
+                .Select(c => new CategoryVM
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                    Active = c.Active
+                })
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public Category generateCategory(CategoryVM category)
+        {
+            return new Category
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Description = category.Description,
+                Active = category.Active
+            };
         }
     }
 }

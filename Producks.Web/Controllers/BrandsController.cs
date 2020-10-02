@@ -130,7 +130,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            var brand = getBrandVM(id);
+            BrandVM brand = getBrandVM(id).Result;
             if (brand == null)
             {
                 return NotFound();
@@ -145,6 +145,24 @@ namespace Producks.Web.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var brand = await _context.Brands.FindAsync(id);
+            brand.Active = false;
+            try
+            {
+                _context.Update(brand);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BrandExists(brand.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
             _context.Brands.Remove(brand);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -152,7 +170,7 @@ namespace Producks.Web.Controllers
 
         private bool BrandExists(int id)
         {
-            return _context.Brands.Any(e => e.Id == id);
+            return _context.Brands.Any(b => b.Id == id);
         }
 
         public async Task<BrandVM> getBrandVM(int? id)
@@ -164,7 +182,7 @@ namespace Producks.Web.Controllers
                     Name = b.Name,
                     Active = b.Active
                 })
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(b => b.Id == id);
         }
 
         public Brand generateBrand(BrandVM brand)
