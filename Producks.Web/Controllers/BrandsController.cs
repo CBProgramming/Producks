@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Producks.Data;
+using Producks.Web.Models;
 
 namespace Producks.Web.Controllers
 {
@@ -21,7 +22,16 @@ namespace Producks.Web.Controllers
         // GET: Brands
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Brands.ToListAsync());
+            var brands = await _context.Brands
+                           .Select(b => new BrandVM
+                           {
+                               Id = b.Id,
+                               Name = b.Name,
+                               Active = b.Active
+                           })
+                           .Where(b => b.Active == true)
+                           .ToListAsync();
+            return View(brands);
         }
 
         // GET: Brands/Details/5
@@ -31,9 +41,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-
-            var brand = await _context.Brands
-                .FirstOrDefaultAsync(m => m.Id == id);
+            BrandVM brand = getBrandVM(id).Result;
             if (brand == null)
             {
                 return NotFound();
@@ -53,11 +61,11 @@ namespace Producks.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Active")] Brand brand)
+        public async Task<IActionResult> Create([Bind("Id,Name,Active")] BrandVM brand)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && brand.Name != null)
             {
-                _context.Add(brand);
+                _context.Add(generateBrand(brand));
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -72,7 +80,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            var brand = await _context.Brands.FindAsync(id);
+            BrandVM brand = getBrandVM(id).Result;
             if (brand == null)
             {
                 return NotFound();
@@ -85,18 +93,17 @@ namespace Producks.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Active")] Brand brand)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Active")] BrandVM brand)
         {
             if (id != brand.Id)
             {
                 return NotFound();
             }
-
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && brand.Name != null)
             {
                 try
                 {
-                    _context.Update(brand);
+                    _context.Update(generateBrand(brand));
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -123,8 +130,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            var brand = await _context.Brands
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var brand = getBrandVM(id);
             if (brand == null)
             {
                 return NotFound();
@@ -147,6 +153,28 @@ namespace Producks.Web.Controllers
         private bool BrandExists(int id)
         {
             return _context.Brands.Any(e => e.Id == id);
+        }
+
+        public async Task<BrandVM> getBrandVM(int? id)
+        {
+            return await _context.Brands
+                .Select(b => new BrandVM
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Active = b.Active
+                })
+                .FirstOrDefaultAsync(m => m.Id == id);
+        }
+
+        public Brand generateBrand(BrandVM brand)
+        {
+            return new Brand
+            {
+                Id = brand.Id,
+                Name = brand.Name,
+                Active = brand.Active
+            };
         }
     }
 }
