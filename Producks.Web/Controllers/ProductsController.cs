@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Producks.Data;
+using Producks.Web.Models;
 
 namespace Producks.Web.Controllers
 {
@@ -21,8 +22,24 @@ namespace Producks.Web.Controllers
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            var storeDb = _context.Products.Include(p => p.Brand).Include(p => p.Category);
-            return View(await storeDb.ToListAsync());
+            var storeDb = await _context.Products.Select(p => new ProductVM
+            {
+                Id = p.Id,
+                CategoryId = p.CategoryId,
+                BrandId = p.BrandId,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                StockLevel = p.StockLevel,
+                Active = p.Active,
+                Category = p.Category,
+                Brand = p.Brand
+            })
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Where(p => p.Active == true)
+                .ToListAsync();
+            return View(storeDb);
         }
 
         // GET: Products/Details/5
@@ -33,10 +50,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            ProductVM product = getProductVM(id).Result;
             if (product == null)
             {
                 return NotFound();
@@ -58,11 +72,11 @@ namespace Producks.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,CategoryId,BrandId,Name,Description,Price,StockLevel,Active")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,CategoryId,BrandId,Name,Description,Price,StockLevel,Active")] ProductVM product)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);
+                _context.Add(generateProduct(product));
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -79,7 +93,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products.FindAsync(id);
+            ProductVM product = getProductVM(id).Result;
             if (product == null)
             {
                 return NotFound();
@@ -94,7 +108,7 @@ namespace Producks.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,CategoryId,BrandId,Name,Description,Price,StockLevel,Active")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,CategoryId,BrandId,Name,Description,Price,StockLevel,Active")] ProductVM product)
         {
             if (id != product.Id)
             {
@@ -105,7 +119,7 @@ namespace Producks.Web.Controllers
             {
                 try
                 {
-                    _context.Update(product);
+                    _context.Update(generateProduct(product));
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -133,11 +147,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-
-            var product = await _context.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            ProductVM product = getProductVM(id).Result;
             if (product == null)
             {
                 return NotFound();
@@ -152,7 +162,7 @@ namespace Producks.Web.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var product = await _context.Products.FindAsync(id);
-            _context.Products.Remove(product);
+            product.Active = false;
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
@@ -160,6 +170,44 @@ namespace Producks.Web.Controllers
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.Id == id);
+        }
+
+        public async Task<ProductVM> getProductVM(int? id)
+        {
+            return await _context.Products
+                .Select(p => new ProductVM
+                {
+                    Id = p.Id,
+                    CategoryId = p.CategoryId,
+                    BrandId = p.BrandId,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    StockLevel = p.StockLevel,
+                    Active = p.Active,
+                    Category = p.Category,
+                    Brand = p.Brand
+                })
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(m => m.Id == id);
+        }
+
+        public Product generateProduct(ProductVM product)
+        {
+            return new Product
+            {
+                Id = product.Id,
+                CategoryId = product.CategoryId,
+                BrandId = product.BrandId,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                StockLevel = product.StockLevel,
+                Active = product.Active,
+                Category = product.Category,
+                Brand = product.Brand
+            };
         }
     }
 }

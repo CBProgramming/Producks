@@ -1,4 +1,4 @@
-@model IEnumerable<Producks.Data.Product>
+@model IEnumerable<Producks.Web.Models.ProductVM>
 
 @{
     ViewData["Title"] = "Index";
@@ -25,10 +25,10 @@
                 @Html.DisplayNameFor(model => model.StockLevel)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Active)
+                @Html.DisplayNameFor(model => model.Category)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Category)
+                @Html.DisplayNameFor(model => model.Active)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Brand)
@@ -52,10 +52,10 @@
                 @Html.DisplayFor(modelItem => item.StockLevel)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Active)
+                @Html.DisplayFor(modelItem => item.Category.Description)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Category.Description)
+                @Html.DisplayFor(modelItem => item.Active)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Brand.Name)
