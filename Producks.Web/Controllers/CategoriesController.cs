@@ -33,7 +33,6 @@ namespace Producks.Web.Controllers
                .Where(b => b.Active == true)
                .ToListAsync();
             return View(categories);
-            //return View(await _context.Categories.ToListAsync());
         }
 
         // GET: Categories/Details/5
