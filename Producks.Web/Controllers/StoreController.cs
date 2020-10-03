@@ -25,7 +25,7 @@ namespace Producks.Web.Controllers
         private IEnumerable<ProductVM> localProducts;
         private IEnumerable<BrandVM> localBrands;
         private IEnumerable<CategoryVM> localCategories;
-        private IEnumerable<ProductVM> mergedProducts;
+        private List<ProductVM> mergedProducts;
         private List<BrandVM> mergedBrands;
         private List<CategoryVM> mergedCategories;
 
@@ -42,6 +42,7 @@ namespace Producks.Web.Controllers
             //make some DTOs
             localBrands = await generateLocalBrands();
             undercuttersBrands = await generateUndercuttersBrands();
+            undercuttersBrands = undercuttersBrands.ToList();
             mergeBrands();
             localCategories = await generateLocalCategories();
             undercuttersCategories = await generateUndercuttersCategories();
@@ -54,178 +55,30 @@ namespace Producks.Web.Controllers
             return View(storeIndex);
         }
 
-        private void mergeCategories()
-        {
-            mergedCategories = new List<CategoryVM>();
-            foreach (CategoryVM category in localCategories)
-            {
-                mergedCategories.Add(category);
-            }
-            foreach (CategoryDtoUndercutters undercuttersCategory in undercuttersCategories)
-            {
-                mergedCategories.Add(new CategoryVM
-                {
-                    Id = undercuttersCategory.Id,
-                    Name = undercuttersCategory.Name,
-                    Description = undercuttersCategory.Description
-                });
-            }
-            mergedCategories.OrderBy(b => b.Name);
-        }
-
-        private void mergeBrands()
-        {
-            mergedBrands = new List<BrandVM>();
-            foreach (BrandVM brand in localBrands)
-            {
-                mergedBrands.Add(brand);
-            }
-            foreach (BrandDtoUndercutters undercuttersBrand in undercuttersBrands)
-            {
-                mergedBrands.Add(new BrandVM
-                {
-                    Id = undercuttersBrand.Id,
-                    Name = undercuttersBrand.Name,
-                    Active = true
-                });
-            }
-            mergedBrands.OrderBy(b => b.Name);
-        }
-
-        private async Task<IEnumerable<CategoryVM>> generateLocalCategories()
-        {
-            return await _context.Categories
-               .Select(c => new CategoryVM
-               {
-                   Id = c.Id,
-                   Name = c.Name,
-                   Description = c.Description,
-                   Active = c.Active
-               })
-               .Where(b => b.Active == true)
-               .ToListAsync();
-        }
-
-        private async Task<IEnumerable<BrandVM>> generateLocalBrands()
-        {
-            return await _context.Brands
-               .Select(b => new BrandVM
-               {
-                   Id = b.Id,
-                   Name = b.Name,
-                   Active = b.Active
-               })
-               .Where(b => b.Active == true)
-               .ToListAsync();
-        }
-
-        public async Task<IEnumerable<BrandDtoUndercutters>> generateUndercuttersBrands()
-        {
-            string uri = "/api/Brand";
-            try
-            {
-                var response = await undercuttersClient.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsAsync<List<BrandDtoUndercutters>>();
-            }
-            catch (HttpRequestException e)
-            {
-                return Array.Empty<BrandDtoUndercutters>();
-            }
-        }
-
-        public async void generateUndercuttersProducts()
-        {
-            string uri = "/api/Product";
-            try
-            {
-                var response = await undercuttersClient.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
-                undercuttersProducts = await response.Content.ReadAsAsync<List<ProductDtoUndercutters>>();
-            }
-            catch (HttpRequestException e)
-            {
-                undercuttersProducts = Array.Empty<ProductDtoUndercutters>();
-            }
-        }
-
-
-
-        public async Task<IEnumerable<CategoryDtoUndercutters>> generateUndercuttersCategories()
-        {
-            string uri = "/api/Category";
-            try
-            {
-                var response = await undercuttersClient.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsAsync<List<CategoryDtoUndercutters>>();
-            }
-            catch (HttpRequestException e)
-            {
-                return undercuttersCategories = Array.Empty<CategoryDtoUndercutters>();
-            }
-        }
-
-        public async Task<IActionResult> ProductsByCategory (int? id)
+        public async Task<IActionResult> ProductsByCategory (string id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            CategoryVM category = getCategoryVM(id).Result;
-            if (category == null)
-            {
-                return NotFound();
-            }
-            var products = await _context.Products
-                .Select(p => new ProductVM
-                {
-                    Id = p.Id,
-                    CategoryId = p.CategoryId,
-                    BrandId = p.BrandId,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    StockLevel = p.StockLevel,
-                    Active = p.Active,
-                    Category = p.Category,
-                    Brand = p.Brand
-                })
-                .Where(p => p.Category.Id == category.Id)
-                .Where(p => p.Active == true)
-                .ToListAsync();
-            return View(products);
+            localProducts = await generateLocalProducts();
+            localProducts = localProducts.Where(p => p.Category.Name.Equals(id));
+            undercuttersProducts = await generateUndercuttersProductsByCategory(id);
+            mergeProducts();
+            return View(mergedProducts);
         }
 
-        public async Task<IActionResult> ProductsByBrand(int? id)
+        public async Task<IActionResult> ProductsByBrand(string id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            BrandVM brand = getBrandVM(id).Result;
-            if (brand == null)
-            {
-                return NotFound();
-            }
-            var products = await _context.Products
-                .Select(p => new ProductVM
-                {
-                    Id = p.Id,
-                    CategoryId = p.CategoryId,
-                    BrandId = p.BrandId,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    StockLevel = p.StockLevel,
-                    Active = p.Active,
-                    Category = p.Category,
-                    Brand = p.Brand
-                })
-                .Where(p => p.Brand.Id == brand.Id)
-                .Where(p => p.Active == true)
-                .ToListAsync();
-            return View(products);
+            localProducts = await generateLocalProducts();
+            localProducts = localProducts.Where(p => p.Brand.Name.Equals(id));
+            undercuttersProducts = await generateUndercuttersProductsByBrand(id);
+            mergeProducts();
+            return View(mergedProducts);
         }
 
         public async Task<CategoryVM> getCategoryVM(int? id)
@@ -270,6 +123,224 @@ namespace Producks.Web.Controllers
             undercuttersClient.BaseAddress = new Uri(_configuration["UndercuttersBaseUri"]);
             undercuttersClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             undercuttersClient.Timeout = TimeSpan.FromSeconds(5);
+        }
+
+        public async Task<IEnumerable<ProductVM>> generateLocalProducts()
+        {
+            return await _context.Products
+                .Select(p => new ProductVM
+                {
+                    Id = p.Id,
+                    CategoryId = p.CategoryId,
+                    BrandId = p.BrandId,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    StockLevel = p.StockLevel,
+                    Active = p.Active,
+                    Category = p.Category,
+                    Brand = p.Brand
+                })
+                .Where(p => p.Active == true)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<ProductDtoUndercutters>> generateUndercuttersProducts()
+        {
+            string uri = "/api/Product";
+            try
+            {
+                var response = await undercuttersClient.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsAsync<List<ProductDtoUndercutters>>();
+            }
+            catch (HttpRequestException e)
+            {
+                return Array.Empty<ProductDtoUndercutters>();
+            }
+        }
+
+        public async Task<IEnumerable<ProductDtoUndercutters>> generateUndercuttersProductsByCategory(string categoryName)
+        {
+            string uri = "/api/Product?category_name=" + categoryName;
+            try
+            {
+                var response = await undercuttersClient.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsAsync<List<ProductDtoUndercutters>>();
+            }
+            catch (HttpRequestException e)
+            {
+                return Array.Empty<ProductDtoUndercutters>();
+            }
+        }
+
+        public async Task<IEnumerable<ProductDtoUndercutters>> generateUndercuttersProductsByBrand(string brandName)
+        {
+            int categoryId = -1;
+            undercuttersBrands = await generateUndercuttersBrands();
+            undercuttersBrands = undercuttersBrands.ToList();
+            foreach (BrandDtoUndercutters brand in undercuttersBrands)
+            {
+                if (brand.Name.Equals(brandName))
+                {
+                    categoryId = brand.Id;
+                }
+            }
+            if (categoryId != -1)
+            {
+                string uri = "/api/Product?brand_id=" + categoryId;
+                try
+                {
+                    var response = await undercuttersClient.GetAsync(uri);
+                    response.EnsureSuccessStatusCode();
+                    return await response.Content.ReadAsAsync<List<ProductDtoUndercutters>>();
+                }
+                catch (HttpRequestException e)
+                {
+                    return Array.Empty<ProductDtoUndercutters>();
+                }
+            }
+            return Array.Empty<ProductDtoUndercutters>();
+        }
+
+        private void mergeCategories()
+        {
+            mergedCategories = new List<CategoryVM>();
+            List<String> alreadyAdded = new List<String>();
+            foreach (CategoryVM category in localCategories)
+            {
+                if (!alreadyAdded.Contains(category.Name))
+                {
+                    mergedCategories.Add(category);
+                    alreadyAdded.Add(category.Name);
+                }
+            }
+            foreach (CategoryDtoUndercutters undercuttersCategory in undercuttersCategories)
+            {
+                if (!alreadyAdded.Contains(undercuttersCategory.Name))
+                {
+                    mergedCategories.Add(new CategoryVM
+                    {
+                        Id = 0,
+                        Name = undercuttersCategory.Name,
+                        Description = undercuttersCategory.Description
+                    });
+                    alreadyAdded.Add(undercuttersCategory.Name);
+                }
+            }
+            mergedCategories.OrderBy(b => b.Name);
+        }
+
+        private void mergeBrands()
+        {
+            mergedBrands = new List<BrandVM>();
+            List<String> alreadyAdded = new List<String>();
+            foreach (BrandVM brand in localBrands)
+            {
+                if (!alreadyAdded.Contains(brand.Name))
+                {
+                    mergedBrands.Add(brand);
+                    alreadyAdded.Add(brand.Name);
+                }
+            }
+            foreach (BrandDtoUndercutters undercuttersBrand in undercuttersBrands)
+            {
+                if (!alreadyAdded.Contains(undercuttersBrand.Name))
+                {
+                    mergedBrands.Add(new BrandVM
+                    {
+                        Id = undercuttersBrand.Id,
+                        Name = undercuttersBrand.Name,
+                        Active = true
+                    });
+                    alreadyAdded.Add(undercuttersBrand.Name);
+                }
+            }
+            mergedBrands.OrderBy(b => b.Name);
+        }
+
+        private void mergeProducts()
+        {
+            mergedProducts = new List<ProductVM>();
+            foreach (ProductVM product in localProducts)
+            {
+                mergedProducts.Add(product);
+            }
+            foreach (ProductDtoUndercutters undercuttersProduct in undercuttersProducts)
+            {
+                mergedProducts.Add(new ProductVM
+                {
+                    Id = undercuttersProduct.Id,
+                    CategoryId = undercuttersProduct.CategoryId,
+                    BrandId = undercuttersProduct.BrandId,
+                    Name = undercuttersProduct.Name,
+                    Description = undercuttersProduct.Description,
+                    Price = undercuttersProduct.Price,
+                    StockLevel = undercuttersProduct.StockLevel,
+                    Active = true,
+                    Category = undercuttersProduct.Category,
+                    Brand = undercuttersProduct.Brand
+                });
+            }
+            mergedProducts.OrderBy(b => b.Name);
+        }
+
+        private async Task<IEnumerable<CategoryVM>> generateLocalCategories()
+        {
+            return await _context.Categories
+               .Select(c => new CategoryVM
+               {
+                   Id = c.Id,
+                   Name = c.Name,
+                   Description = c.Description,
+                   Active = c.Active
+               })
+               .Where(b => b.Active == true)
+               .ToListAsync();
+        }
+
+        private async Task<IEnumerable<BrandVM>> generateLocalBrands()
+        {
+            return await _context.Brands
+               .Select(b => new BrandVM
+               {
+                   Id = b.Id,
+                   Name = b.Name,
+                   Active = b.Active
+               })
+               .Where(b => b.Active == true)
+               .ToListAsync();
+        }
+
+        public async Task<IEnumerable<BrandDtoUndercutters>> generateUndercuttersBrands()
+        {
+            string uri = "/api/Brand";
+            try
+            {
+                var response = await undercuttersClient.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsAsync<List<BrandDtoUndercutters>>();
+            }
+            catch (HttpRequestException e)
+            {
+                return Array.Empty<BrandDtoUndercutters>();
+            }
+        }
+
+        public async Task<IEnumerable<CategoryDtoUndercutters>> generateUndercuttersCategories()
+        {
+            string uri = "/api/Category";
+            try
+            {
+                var response = await undercuttersClient.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsAsync<List<CategoryDtoUndercutters>>();
+            }
+            catch (HttpRequestException e)
+            {
+                return undercuttersCategories = Array.Empty<CategoryDtoUndercutters>();
+            }
         }
     }
 }
