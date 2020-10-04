@@ -1,10 +1,9 @@
-﻿using Producks.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Producks.Web.Models
+namespace Producks.UndercuttersFacade.Models
 {
     public class ProductDtoUndercutters
     {
@@ -16,7 +15,7 @@ namespace Producks.Web.Models
         public double Price { get; set; }
         public int StockLevel { get; set; }
 
-        public Category Category { get; set; }
-        public Brand Brand { get; set; }
+        //public Category Category { get; set; }
+        //public Brand Brand { get; set; }
     }
 }

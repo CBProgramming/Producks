@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Producks.Data\Producks.Data.csproj" />
+    <ProjectReference Include="..\Producks.UndercuttersFacade\Producks.UndercuttersFacade.csproj" />
   </ItemGroup>
 
   <ItemGroup>

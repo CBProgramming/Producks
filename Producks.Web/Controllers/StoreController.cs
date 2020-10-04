@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Producks.Data;
+using Producks.UndercuttersFacade;
+using Producks.UndercuttersFacade.Models;
 using Producks.Web.Models;
 
 namespace Producks.Web.Controllers
@@ -18,10 +20,11 @@ namespace Producks.Web.Controllers
 
         private readonly StoreDb _context;
         private readonly IConfiguration _configuration;
+        private readonly ICategory _category;
         private HttpClient undercuttersClient;
         private IEnumerable<ProductDtoUndercutters> undercuttersProducts;
         private IEnumerable<BrandDtoUndercutters> undercuttersBrands;
-        private IEnumerable<CategoryDtoUndercutters> undercuttersCategories;
+        private List<CategoryDtoUndercutters> undercuttersCategories;
         private IEnumerable<ProductVM> localProducts;
         private IEnumerable<BrandVM> localBrands;
         private IEnumerable<CategoryVM> localCategories;
@@ -29,10 +32,11 @@ namespace Producks.Web.Controllers
         private List<BrandVM> mergedBrands;
         private List<CategoryVM> mergedCategories;
 
-        public StoreController(StoreDb context, IConfiguration configuration)
+        public StoreController(StoreDb context, IConfiguration configuration, ICategory category)
         {
             _context = context;
             _configuration = configuration;
+            _category = category;
             setupUndercutersClient();
         }
 
@@ -45,7 +49,7 @@ namespace Producks.Web.Controllers
             undercuttersBrands = undercuttersBrands.ToList();
             mergeBrands();
             localCategories = await generateLocalCategories();
-            undercuttersCategories = await generateUndercuttersCategories();
+            undercuttersCategories = await _category.GetCategories();
             mergeCategories();
             StoreIndexVM storeIndex = new StoreIndexVM
             {
@@ -94,9 +98,9 @@ namespace Producks.Web.Controllers
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public Category generateCategory(CategoryVM category)
+        public Producks.Data.Category generateCategory(CategoryVM category)
         {
-            return new Category
+            return new Producks.Data.Category
             {
                 Id = category.Id,
                 Name = category.Name,
@@ -279,8 +283,8 @@ namespace Producks.Web.Controllers
                     Price = undercuttersProduct.Price,
                     StockLevel = undercuttersProduct.StockLevel,
                     Active = true,
-                    Category = undercuttersProduct.Category,
-                    Brand = undercuttersProduct.Brand
+                    //Category = undercuttersProduct.Category,
+                    //Brand = undercuttersProduct.Brand
                 });
             }
             mergedProducts.OrderBy(b => b.Name);
@@ -339,7 +343,7 @@ namespace Producks.Web.Controllers
             }
             catch (HttpRequestException e)
             {
-                return undercuttersCategories = Array.Empty<CategoryDtoUndercutters>();
+                return new List<CategoryDtoUndercutters> ();
             }
         }
     }

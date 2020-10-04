@@ -1,9 +1,12 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Producks.Data", "Producks.Data\Producks.Data.csproj", "{170BA786-EE89-46CB-8D36-54E3398A5DBA}"
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29318.209
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producks.Data", "Producks.Data\Producks.Data.csproj", "{170BA786-EE89-46CB-8D36-54E3398A5DBA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Producks.Web", "Producks.Web\Producks.Web.csproj", "{303533C7-5BBD-4B20-A509-9AB1C2FDF57E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producks.Web", "Producks.Web\Producks.Web.csproj", "{303533C7-5BBD-4B20-A509-9AB1C2FDF57E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Producks.UndercuttersFacade", "Producks.UndercuttersFacade\Producks.UndercuttersFacade.csproj", "{BB8908B3-A177-4B33-8205-D1B6D56FE385}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,5 +22,15 @@ Global
 		{303533C7-5BBD-4B20-A509-9AB1C2FDF57E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{303533C7-5BBD-4B20-A509-9AB1C2FDF57E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{303533C7-5BBD-4B20-A509-9AB1C2FDF57E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB8908B3-A177-4B33-8205-D1B6D56FE385}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB8908B3-A177-4B33-8205-D1B6D56FE385}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB8908B3-A177-4B33-8205-D1B6D56FE385}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB8908B3-A177-4B33-8205-D1B6D56FE385}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B6FE8EA4-94CA-4267-A122-B67FB522FDC4}
 	EndGlobalSection
 EndGlobal

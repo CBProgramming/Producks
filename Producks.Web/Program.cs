@@ -26,6 +26,7 @@ namespace Producks.Web
                 if (env.IsDevelopment())
                 {
                     var context = services.GetRequiredService<StoreDb>();
+                    context.Database.EnsureDeleted();
                     context.Database.Migrate();
                     try
                     {
