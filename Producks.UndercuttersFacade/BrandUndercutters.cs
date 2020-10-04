@@ -1,19 +1,19 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using Producks.UndercuttersFacade.Models;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Producks.UndercuttersFacade.Models;
 
 namespace Producks.UndercuttersFacade
 {
-    public class Category : ICategory
+    public class BrandUndercutters : IBrandUndercutters
     {
         private readonly IConfiguration _configuration;
         private readonly HttpClient _client;
 
-        public Category(IConfiguration configuration)
+        public BrandUndercutters(IConfiguration configuration)
         {
             _configuration = configuration;
             _client = new HttpClient()
@@ -24,21 +24,21 @@ namespace Producks.UndercuttersFacade
             _client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
         }
 
-        public async Task<List<CategoryDtoUndercutters>> GetCategories()
+        public async Task<List<BrandDtoUndercutters>> GetBrands()
         {
-            List<CategoryDtoUndercutters> categories;
-            string uri = "/api/Category";
+            List<BrandDtoUndercutters> brands;
+            string uri = "/api/Brand";
             try
             {
                 var response = await _client.GetAsync(uri);
                 response.EnsureSuccessStatusCode();
-                categories = await response.Content.ReadAsAsync<List<CategoryDtoUndercutters>>();
+                brands = await response.Content.ReadAsAsync<List<BrandDtoUndercutters>>();
             }
             catch (HttpRequestException e)
             {
-                categories = new List<CategoryDtoUndercutters>();
+                brands = new List<BrandDtoUndercutters>();
             }
-            return categories;
+            return brands;
         }
     }
 }

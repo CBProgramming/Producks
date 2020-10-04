@@ -37,7 +37,9 @@ namespace Producks.Web
             services.AddDbContext<StoreDb>(options =>options.UseSqlServer(
                 Configuration.GetConnectionString("StoreConnection")));
 
-            services.AddScoped<ICategory, UndercuttersFacade.Category>();
+            services.AddScoped<ICategoryUndercutters, CategoryUndercutters>();
+            services.AddScoped<IBrandUndercutters, BrandUndercutters>();
+            services.AddScoped<IProductUndercutters, ProductUndercutters>();
 
             services.AddMvc()
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);

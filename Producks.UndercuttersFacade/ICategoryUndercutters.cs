@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Producks.UndercuttersFacade
 {
-    public interface ICategory
+    public interface ICategoryUndercutters
     {
         Task<List<CategoryDtoUndercutters>> GetCategories();
     }

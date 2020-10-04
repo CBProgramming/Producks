@@ -20,10 +20,12 @@ namespace Producks.Web.Controllers
 
         private readonly StoreDb _context;
         private readonly IConfiguration _configuration;
-        private readonly ICategory _category;
+        private readonly ICategoryUndercutters undercuttersCategoryGetter;
+        private readonly IBrandUndercutters undercuttersBrandGetter;
+        private readonly IProductUndercutters undercuttersProductGetter;
         private HttpClient undercuttersClient;
         private IEnumerable<ProductDtoUndercutters> undercuttersProducts;
-        private IEnumerable<BrandDtoUndercutters> undercuttersBrands;
+        private List<BrandDtoUndercutters> undercuttersBrands;
         private List<CategoryDtoUndercutters> undercuttersCategories;
         private IEnumerable<ProductVM> localProducts;
         private IEnumerable<BrandVM> localBrands;
@@ -32,11 +34,17 @@ namespace Producks.Web.Controllers
         private List<BrandVM> mergedBrands;
         private List<CategoryVM> mergedCategories;
 
-        public StoreController(StoreDb context, IConfiguration configuration, ICategory category)
+        public StoreController(StoreDb context, 
+            IConfiguration configuration, 
+            ICategoryUndercutters _undercuttersCategoryGetter,
+            IBrandUndercutters _undercuttersBrandGetter,
+            IProductUndercutters _undercuttersProductGetter)
         {
             _context = context;
             _configuration = configuration;
-            _category = category;
+            undercuttersCategoryGetter = _undercuttersCategoryGetter;
+            undercuttersBrandGetter = _undercuttersBrandGetter;
+            undercuttersProductGetter = _undercuttersProductGetter;
             setupUndercutersClient();
         }
 
@@ -45,11 +53,11 @@ namespace Producks.Web.Controllers
             //pull brands, categories and products and combine to display with local stuff
             //make some DTOs
             localBrands = await generateLocalBrands();
-            undercuttersBrands = await generateUndercuttersBrands();
-            undercuttersBrands = undercuttersBrands.ToList();
+            undercuttersBrands = await undercuttersBrandGetter.GetBrands();
+            //undercuttersBrands = undercuttersBrands.ToList();
             mergeBrands();
             localCategories = await generateLocalCategories();
-            undercuttersCategories = await _category.GetCategories();
+            undercuttersCategories = await undercuttersCategoryGetter.GetCategories();
             mergeCategories();
             StoreIndexVM storeIndex = new StoreIndexVM
             {
@@ -67,7 +75,7 @@ namespace Producks.Web.Controllers
             }
             localProducts = await generateLocalProducts();
             localProducts = localProducts.Where(p => p.Category.Name.Equals(id));
-            undercuttersProducts = await generateUndercuttersProductsByCategory(id);
+            undercuttersProducts = await undercuttersProductGetter.GetProductsByCategoryName(id);
             mergeProducts();
             return View(mergedProducts);
         }
@@ -80,7 +88,7 @@ namespace Producks.Web.Controllers
             }
             localProducts = await generateLocalProducts();
             localProducts = localProducts.Where(p => p.Brand.Name.Equals(id));
-            undercuttersProducts = await generateUndercuttersProductsByBrand(id);
+            undercuttersProducts = await undercuttersProductGetter.GetProductsByBrandName(id);
             mergeProducts();
             return View(mergedProducts);
         }
@@ -147,65 +155,6 @@ namespace Producks.Web.Controllers
                 })
                 .Where(p => p.Active == true)
                 .ToListAsync();
-        }
-
-        public async Task<IEnumerable<ProductDtoUndercutters>> generateUndercuttersProducts()
-        {
-            string uri = "/api/Product";
-            try
-            {
-                var response = await undercuttersClient.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsAsync<List<ProductDtoUndercutters>>();
-            }
-            catch (HttpRequestException e)
-            {
-                return Array.Empty<ProductDtoUndercutters>();
-            }
-        }
-
-        public async Task<IEnumerable<ProductDtoUndercutters>> generateUndercuttersProductsByCategory(string categoryName)
-        {
-            string uri = "/api/Product?category_name=" + categoryName;
-            try
-            {
-                var response = await undercuttersClient.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsAsync<List<ProductDtoUndercutters>>();
-            }
-            catch (HttpRequestException e)
-            {
-                return Array.Empty<ProductDtoUndercutters>();
-            }
-        }
-
-        public async Task<IEnumerable<ProductDtoUndercutters>> generateUndercuttersProductsByBrand(string brandName)
-        {
-            int categoryId = -1;
-            undercuttersBrands = await generateUndercuttersBrands();
-            undercuttersBrands = undercuttersBrands.ToList();
-            foreach (BrandDtoUndercutters brand in undercuttersBrands)
-            {
-                if (brand.Name.Equals(brandName))
-                {
-                    categoryId = brand.Id;
-                }
-            }
-            if (categoryId != -1)
-            {
-                string uri = "/api/Product?brand_id=" + categoryId;
-                try
-                {
-                    var response = await undercuttersClient.GetAsync(uri);
-                    response.EnsureSuccessStatusCode();
-                    return await response.Content.ReadAsAsync<List<ProductDtoUndercutters>>();
-                }
-                catch (HttpRequestException e)
-                {
-                    return Array.Empty<ProductDtoUndercutters>();
-                }
-            }
-            return Array.Empty<ProductDtoUndercutters>();
         }
 
         private void mergeCategories()
@@ -315,36 +264,6 @@ namespace Producks.Web.Controllers
                })
                .Where(b => b.Active == true)
                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<BrandDtoUndercutters>> generateUndercuttersBrands()
-        {
-            string uri = "/api/Brand";
-            try
-            {
-                var response = await undercuttersClient.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsAsync<List<BrandDtoUndercutters>>();
-            }
-            catch (HttpRequestException e)
-            {
-                return Array.Empty<BrandDtoUndercutters>();
-            }
-        }
-
-        public async Task<IEnumerable<CategoryDtoUndercutters>> generateUndercuttersCategories()
-        {
-            string uri = "/api/Category";
-            try
-            {
-                var response = await undercuttersClient.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsAsync<List<CategoryDtoUndercutters>>();
-            }
-            catch (HttpRequestException e)
-            {
-                return new List<CategoryDtoUndercutters> ();
-            }
         }
     }
 }
