@@ -2,35 +2,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Producks.Data;
 using Producks.Web.Models;
+using ProducksRepository;
 
 namespace Producks.Web.Controllers
 {
     public class BrandsController : Controller
     {
         private readonly StoreDb _context;
+        private readonly IBrandRepository _brandRepository;
+        private readonly IMapper _mapper;
 
-        public BrandsController(StoreDb context)
+        public BrandsController(StoreDb context, IBrandRepository brandRepository, IMapper mapper)
         {
             _context = context;
+            _brandRepository = brandRepository;
+            _mapper = mapper;
         }
 
         // GET: Brands
         public async Task<IActionResult> Index()
         {
-            var brands = await _context.Brands
-                           .Select(b => new BrandVM
-                           {
-                               Id = b.Id,
-                               Name = b.Name,
-                               Active = b.Active
-                           })
-                           .Where(b => b.Active == true)
-                           .ToListAsync();
+            var brands = (await _brandRepository.GetBrands())
+                .Select(b => new BrandVM
+                {
+                    Id = b.Id,
+                    Name = b.Name
+                })
+                .ToList();
             return View(brands);
         }
 
@@ -41,13 +45,13 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            BrandVM brand = getBrandVM(id).Result;
-            if (brand == null)
+            BrandVM brandVM = _mapper.Map<BrandVM>(await _brandRepository.GetBrand(id));
+            if (brandVM == null)
             {
                 return NotFound();
             }
 
-            return View(brand);
+            return View(brandVM);
         }
 
         // GET: Brands/Create
@@ -80,7 +84,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            BrandVM brand = getBrandVM(id).Result;
+            BrandVM brand = _mapper.Map<BrandVM>(_brandRepository.GetBrand(id));
             if (brand == null)
             {
                 return NotFound();
@@ -130,7 +134,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            BrandVM brand = getBrandVM(id).Result;
+            BrandVM brand = _mapper.Map<BrandVM>(_brandRepository.GetBrand(id));
             if (brand == null)
             {
                 return NotFound();
@@ -171,18 +175,6 @@ namespace Producks.Web.Controllers
         private bool BrandExists(int id)
         {
             return _context.Brands.Any(b => b.Id == id);
-        }
-
-        public async Task<BrandVM> getBrandVM(int? id)
-        {
-            return await _context.Brands
-                .Select(b => new BrandVM
-                {
-                    Id = b.Id,
-                    Name = b.Name,
-                    Active = b.Active
-                })
-                .FirstOrDefaultAsync(b => b.Id == id);
         }
 
         public Brand generateBrand(BrandVM brand)

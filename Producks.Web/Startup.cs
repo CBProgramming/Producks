@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Producks.Data;
 using Producks.UndercuttersFacade;
+using ProducksRepository;
 
 namespace Producks.Web
 {
@@ -36,10 +38,12 @@ namespace Producks.Web
 
             services.AddDbContext<StoreDb>(options =>options.UseSqlServer(
                 Configuration.GetConnectionString("StoreConnection")));
+            services.AddAutoMapper(typeof(Startup));
 
             services.AddScoped<ICategoryUndercutters, CategoryUndercutters>();
             services.AddScoped<IBrandUndercutters, BrandUndercutters>();
             services.AddScoped<IProductUndercutters, ProductUndercutters>();
+            services.AddScoped<IBrandRepository, BrandRepository>();
 
             services.AddMvc()
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);

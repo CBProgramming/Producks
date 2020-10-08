@@ -25,15 +25,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.StockLevel)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Active)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Brand)
-            </th>
             <th></th>
         </tr>
     </thead>
@@ -52,15 +43,6 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.StockLevel)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Active)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Category.Description)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Brand.Name)
                 </td>
             </tr>
         }

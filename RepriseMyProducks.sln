@@ -6,7 +6,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producks.Data", "Producks.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producks.Web", "Producks.Web\Producks.Web.csproj", "{303533C7-5BBD-4B20-A509-9AB1C2FDF57E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Producks.UndercuttersFacade", "Producks.UndercuttersFacade\Producks.UndercuttersFacade.csproj", "{BB8908B3-A177-4B33-8205-D1B6D56FE385}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producks.UndercuttersFacade", "Producks.UndercuttersFacade\Producks.UndercuttersFacade.csproj", "{BB8908B3-A177-4B33-8205-D1B6D56FE385}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProducksRepository", "ProducksRepository\ProducksRepository.csproj", "{15D4BF77-B61B-48B5-9226-B9BC0BED5C67}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +28,10 @@ Global
 		{BB8908B3-A177-4B33-8205-D1B6D56FE385}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB8908B3-A177-4B33-8205-D1B6D56FE385}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB8908B3-A177-4B33-8205-D1B6D56FE385}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15D4BF77-B61B-48B5-9226-B9BC0BED5C67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15D4BF77-B61B-48B5-9226-B9BC0BED5C67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15D4BF77-B61B-48B5-9226-B9BC0BED5C67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15D4BF77-B61B-48B5-9226-B9BC0BED5C67}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
