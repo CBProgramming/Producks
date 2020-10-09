@@ -19,9 +19,18 @@ namespace ProducksRepository
             _context = context;
         }
 
-        public bool CreateBrand(BrandModel brand)
+        public async Task<bool> CreateBrand(BrandModel brand)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _context.Add(generateBrand(brand));
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
         }
 
         public bool DetelteBrand(int? id)
@@ -58,6 +67,16 @@ namespace ProducksRepository
                            })
                            .ToListAsync();
             return brands;
+        }
+
+        public Brand generateBrand(BrandModel brand)
+        {
+            return new Brand
+            {
+                Id = brand.Id,
+                Name = brand.Name,
+                Active = true
+            };
         }
     }
 }

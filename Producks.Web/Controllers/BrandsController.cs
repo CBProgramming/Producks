@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Producks.Data;
 using Producks.Web.Models;
 using ProducksRepository;
+using ProducksRepository.Models;
 
 namespace Producks.Web.Controllers
 {
@@ -28,13 +29,7 @@ namespace Producks.Web.Controllers
         // GET: Brands
         public async Task<IActionResult> Index()
         {
-            var brands = (await _brandRepository.GetBrands())
-                .Select(b => new BrandVM
-                {
-                    Id = b.Id,
-                    Name = b.Name
-                })
-                .ToList();
+            var brands = _mapper.Map<IEnumerable<BrandVM>>(await _brandRepository.GetBrands());
             return View(brands);
         }
 
@@ -65,12 +60,13 @@ namespace Producks.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Active")] BrandVM brand)
+        public async Task<IActionResult> Create([Bind("Id,Name")] BrandVM brand)
         {
-            if (ModelState.IsValid && brand.Name != null)
+            if (ModelState.IsValid 
+                && brand.Name != null 
+                && !brand.Name.Equals("") 
+                && await _brandRepository.CreateBrand(_mapper.Map<BrandModel>(brand)))
             {
-                _context.Add(generateBrand(brand));
-                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(brand);
@@ -183,7 +179,7 @@ namespace Producks.Web.Controllers
             {
                 Id = brand.Id,
                 Name = brand.Name,
-                Active = brand.Active
+                Active = true
             };
         }
     }

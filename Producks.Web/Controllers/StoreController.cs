@@ -124,7 +124,6 @@ namespace Producks.Web.Controllers
                 {
                     Id = b.Id,
                     Name = b.Name,
-                    Active = b.Active
                 })
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
@@ -205,7 +204,6 @@ namespace Producks.Web.Controllers
                     {
                         Id = undercuttersBrand.Id,
                         Name = undercuttersBrand.Name,
-                        Active = true
                     });
                     alreadyAdded.Add(undercuttersBrand.Name);
                 }
@@ -259,10 +257,8 @@ namespace Producks.Web.Controllers
                .Select(b => new BrandVM
                {
                    Id = b.Id,
-                   Name = b.Name,
-                   Active = b.Active
+                   Name = b.Name
                })
-               .Where(b => b.Active == true)
                .ToListAsync();
         }
     }

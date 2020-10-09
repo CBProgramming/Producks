@@ -13,6 +13,7 @@ namespace Producks.Web
         public UserProfile()
         {
             CreateMap<BrandModel, BrandVM>();
+            CreateMap<BrandVM, BrandModel>();
         }
     }
 }

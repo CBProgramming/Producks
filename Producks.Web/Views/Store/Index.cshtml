@@ -44,9 +44,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.Brands.FirstOrDefault().Name)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Brands.FirstOrDefault().Active)
-            </th>
             <th></th>
         </tr>
     </thead>
@@ -56,9 +53,6 @@
             <tr>
                 <td>
                     @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Active)
                 </td>
                 <td>
                     <a asp-action="ProductsByBrand" asp-route-id="@item.Name">View Products</a>
