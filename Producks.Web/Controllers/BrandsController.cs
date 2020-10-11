@@ -79,13 +79,12 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-
-            BrandVM brand = _mapper.Map<BrandVM>(_brandRepository.GetBrand(id));
-            if (brand == null)
+            BrandVM brandVM = _mapper.Map<BrandVM>(await _brandRepository.GetBrand(id));
+            if (brandVM == null)
             {
                 return NotFound();
             }
-            return View(brand);
+            return View(brandVM);
         }
 
         // POST: Brands/Edit/5
@@ -99,24 +98,11 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            if (ModelState.IsValid && brand.Name != null)
+            if (ModelState.IsValid
+                && brand.Name != null
+                && await _brandRepository.EditBrand(_mapper.Map<BrandModel>(brand)))
             {
-                try
-                {
-                    _context.Update(generateBrand(brand));
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BrandExists(brand.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                
                 return RedirectToAction(nameof(Index));
             }
             return View(brand);
@@ -129,8 +115,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-
-            BrandVM brand = _mapper.Map<BrandVM>(_brandRepository.GetBrand(id));
+            BrandVM brand = _mapper.Map<BrandVM>(await _brandRepository.GetBrand(id));
             if (brand == null)
             {
                 return NotFound();
@@ -144,43 +129,11 @@ namespace Producks.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var brand = await _context.Brands.FindAsync(id);
-            brand.Active = false;
-            try
+            if(await _brandRepository.DetelteBrand(id))
             {
-                _context.Update(brand);
-                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!BrandExists(brand.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            _context.Brands.Remove(brand);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool BrandExists(int id)
-        {
-            return _context.Brands.Any(b => b.Id == id);
-        }
-
-        public Brand generateBrand(BrandVM brand)
-        {
-            return new Brand
-            {
-                Id = brand.Id,
-                Name = brand.Name,
-                Active = true
-            };
+            return NotFound();
         }
     }
 }

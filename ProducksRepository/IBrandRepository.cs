@@ -11,7 +11,7 @@ namespace ProducksRepository
         Task<List<BrandModel>> GetBrands();
         Task<BrandModel> GetBrand(int? id);
         Task<bool> CreateBrand(BrandModel brand);
-        bool EditBrand(BrandModel brand);
-        bool DetelteBrand(int? id);
+        Task<bool> EditBrand(BrandModel brand);
+        Task<bool> DetelteBrand(int? id);
     }
 }

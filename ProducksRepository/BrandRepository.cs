@@ -33,24 +33,58 @@ namespace ProducksRepository
             }
         }
 
-        public bool DetelteBrand(int? id)
+        public async Task<bool> DetelteBrand(int? id)
         {
-            throw new NotImplementedException();
+            var brand = await _context.Brands.FindAsync(id);
+            brand.Active = false;
+            try
+            {
+                _context.Update(brand);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BrandExists(brand.Id))
+                {
+                    return false;
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
-        public bool EditBrand(BrandModel brand)
+        public async Task<bool> EditBrand(BrandModel brand)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _context.Update(generateBrand(brand));
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BrandExists(brand.Id))
+                {
+                    return false;
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         public Task<BrandModel> GetBrand(int? id)
         {
             var brand = _context.Brands
+                .Where(b => b.Active == true)
                 .Select(b => new BrandModel
                 {
                     Id = b.Id,
-                    Name = b.Name,
-                    Active = b.Active
+                    Name = b.Name
                 })
                 .FirstOrDefaultAsync(b => b.Id == id);
             return brand;
@@ -77,6 +111,11 @@ namespace ProducksRepository
                 Name = brand.Name,
                 Active = true
             };
+        }
+
+        private bool BrandExists(int id)
+        {
+            return _context.Brands.Any(b => b.Id == id);
         }
     }
 }
