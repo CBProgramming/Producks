@@ -23,14 +23,13 @@ namespace Producks.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var categories = await _context.Categories
-               .Select(c => new CategoryVM
-               {
-                   Id = c.Id,
-                   Name = c.Name,
-                   Description = c.Description,
-                   Active = c.Active
-               })
-               .Where(b => b.Active == true)
+                .Where(c => c.Active == true)
+                .Select(c => new CategoryVM
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                })
                .ToListAsync();
             return View(categories);
         }
@@ -160,12 +159,12 @@ namespace Producks.Web.Controllers
         public async Task<CategoryVM> getCategoryVM(int? id)
         {
             return await _context.Categories
+                .Where(c => c.Active == true)
                 .Select(c => new CategoryVM
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Description = c.Description,
-                    Active = c.Active
+                    Description = c.Description
                 })
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
@@ -177,7 +176,7 @@ namespace Producks.Web.Controllers
                 Id = category.Id,
                 Name = category.Name,
                 Description = category.Description,
-                Active = category.Active
+                Active = true
             };
         }
     }

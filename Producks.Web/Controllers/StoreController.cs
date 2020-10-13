@@ -101,7 +101,6 @@ namespace Producks.Web.Controllers
                     Id = c.Id,
                     Name = c.Name,
                     Description = c.Description,
-                    Active = c.Active
                 })
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
@@ -113,7 +112,6 @@ namespace Producks.Web.Controllers
                 Id = category.Id,
                 Name = category.Name,
                 Description = category.Description,
-                Active = category.Active
             };
         }
 
@@ -139,6 +137,7 @@ namespace Producks.Web.Controllers
         public async Task<IEnumerable<ProductVM>> generateLocalProducts()
         {
             return await _context.Products
+                 .Where(p => p.Active == true)
                 .Select(p => new ProductVM
                 {
                     Id = p.Id,
@@ -148,11 +147,9 @@ namespace Producks.Web.Controllers
                     Description = p.Description,
                     Price = p.Price,
                     StockLevel = p.StockLevel,
-                    Active = p.Active,
                     Category = p.Category,
                     Brand = p.Brand
                 })
-                .Where(p => p.Active == true)
                 .ToListAsync();
         }
 
@@ -229,7 +226,6 @@ namespace Producks.Web.Controllers
                     Description = undercuttersProduct.Description,
                     Price = undercuttersProduct.Price,
                     StockLevel = undercuttersProduct.StockLevel,
-                    Active = true,
                     //Category = undercuttersProduct.Category,
                     //Brand = undercuttersProduct.Brand
                 });
@@ -240,14 +236,13 @@ namespace Producks.Web.Controllers
         private async Task<IEnumerable<CategoryVM>> generateLocalCategories()
         {
             return await _context.Categories
+               .Where(b => b.Active == true)
                .Select(c => new CategoryVM
                {
                    Id = c.Id,
                    Name = c.Name,
                    Description = c.Description,
-                   Active = c.Active
                })
-               .Where(b => b.Active == true)
                .ToListAsync();
         }
 

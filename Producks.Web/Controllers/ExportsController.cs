@@ -29,9 +29,8 @@ namespace Producks.Web.Controllers
                                        {
                                            Id = b.Id,
                                            Name = b.Name,
-                                           Active = b.Active
                                        })
-                                       .Where(b => b.Active == true)
+
                                        .ToListAsync();
             return Ok(brands);
         }

@@ -22,7 +22,9 @@ namespace Producks.Web.Controllers
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            var storeDb = await _context.Products.Select(p => new ProductVM
+            var storeDb = await _context.Products
+                .Where(p => p.Active == true)
+                .Select(p => new ProductVM
             {
                 Id = p.Id,
                 CategoryId = p.CategoryId,
@@ -31,13 +33,11 @@ namespace Producks.Web.Controllers
                 Description = p.Description,
                 Price = p.Price,
                 StockLevel = p.StockLevel,
-                Active = p.Active,
                 Category = p.Category,
                 Brand = p.Brand
             })
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
-                .Where(p => p.Active == true)
                 .ToListAsync();
             return View(storeDb);
         }
@@ -184,7 +184,6 @@ namespace Producks.Web.Controllers
                     Description = p.Description,
                     Price = p.Price,
                     StockLevel = p.StockLevel,
-                    Active = p.Active,
                     Category = p.Category,
                     Brand = p.Brand
                 })
@@ -204,7 +203,6 @@ namespace Producks.Web.Controllers
                 Description = product.Description,
                 Price = product.Price,
                 StockLevel = product.StockLevel,
-                Active = product.Active,
                 Category = product.Category,
                 Brand = product.Brand
             };
