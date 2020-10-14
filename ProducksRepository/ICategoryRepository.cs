@@ -8,8 +8,8 @@ namespace ProducksRepository
 {
     public interface ICategoryRepository
     {
-        Task<List<CategoryModel>> GetCategories();
-        Task<CategoryModel> GetCategory(int? id);
+        List<CategoryModel> GetCategories();
+        CategoryModel GetCategory(int? id);
         Task<bool> CreateCategory(CategoryModel category);
         Task<bool> EditCategory(CategoryModel category);
         Task<bool> DetelteCategory(int? id);

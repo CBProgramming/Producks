@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Producks.Data;
 using Producks.Web.Models;
 using ProducksRepository;
+using ProducksRepository.Models;
 
 namespace Producks.Web.Controllers
 {
@@ -28,15 +29,7 @@ namespace Producks.Web.Controllers
         // GET: Categories
         public async Task<IActionResult> Index()
         {
-            var categories = await _context.Categories
-    .Where(c => c.Active == true)
-    .Select(c => new CategoryVM
-    {
-        Id = c.Id,
-        Name = c.Name,
-        Description = c.Description,
-    })
-   .ToListAsync();
+            var categories = _mapper.Map<List<CategoryVM>>(_categoryRepository.GetCategories());
             return View(categories);
         }
 
@@ -48,7 +41,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            CategoryVM category = getCategoryVM(id).Result;
+            CategoryVM category = _mapper.Map<CategoryVM>(_categoryRepository.GetCategory(id));
             if (category == null)
             {
                 return NotFound();
@@ -70,11 +63,12 @@ namespace Producks.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Description,Active")] CategoryVM category)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid
+                && !String.IsNullOrEmpty(category.Name)
+                && !String.IsNullOrEmpty(category.Description)
+                && await _categoryRepository.CreateCategory(_mapper.Map<CategoryModel>(category)))
             {
-                _context.Add(generateCategory(category));
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return base.RedirectToAction(nameof(Index));
             }
             return View(category);
         }
@@ -87,7 +81,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            CategoryVM category = getCategoryVM(id).Result;
+            CategoryVM category = _mapper.Map<CategoryVM>(_categoryRepository.GetCategory(id));
             if (category == null)
             {
                 return NotFound();
@@ -106,26 +100,13 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-
-            if (ModelState.IsValid && category.Name != null && category.Description != null)
+            if (ModelState.IsValid
+                && !String.IsNullOrEmpty(category.Name)
+                && !String.IsNullOrEmpty(category.Description)
+                && await _categoryRepository.EditCategory(_mapper.Map<CategoryModel>(category)))
             {
-                try
-                {
-                    _context.Update(generateCategory(category));
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CategoryExists(category.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+
+                return base.RedirectToAction(nameof(Index));
             }
             return View(category);
         }
@@ -137,7 +118,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            CategoryVM category = getCategoryVM(id).Result;
+            CategoryVM category = _mapper.Map<CategoryVM>(_categoryRepository.GetCategory(id));
             if (category == null)
             {
                 return NotFound();
@@ -151,10 +132,11 @@ namespace Producks.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
-            category.Active = false;
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (await _categoryRepository.DetelteCategory(id))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            return NotFound();
         }
 
         private bool CategoryExists(int id)
@@ -162,18 +144,6 @@ namespace Producks.Web.Controllers
             return _context.Categories.Any(e => e.Id == id);
         }
 
-        public async Task<CategoryVM> getCategoryVM(int? id)
-        {
-            return await _context.Categories
-                .Where(c => c.Active == true)
-                .Select(c => new CategoryVM
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description
-                })
-                .FirstOrDefaultAsync(c => c.Id == id);
-        }
 
         public Category generateCategory(CategoryVM category)
         {

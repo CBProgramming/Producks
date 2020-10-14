@@ -63,8 +63,7 @@ namespace Producks.Web.Controllers
         public async Task<IActionResult> Create([Bind("Id,Name")] BrandVM brand)
         {
             if (ModelState.IsValid 
-                && brand.Name != null 
-                && !brand.Name.Equals("") 
+                && !String.IsNullOrEmpty(brand.Name)
                 && await _brandRepository.CreateBrand(_mapper.Map<BrandModel>(brand)))
             {
                 return base.RedirectToAction(nameof(Index));
@@ -99,7 +98,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
             if (ModelState.IsValid
-                && brand.Name != null
+                && !String.IsNullOrEmpty(brand.Name)
                 && await _brandRepository.EditBrand(_mapper.Map<BrandModel> (brand)))
             {
                 

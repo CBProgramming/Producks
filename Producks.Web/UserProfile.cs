@@ -19,6 +19,16 @@ namespace Producks.Web
             CreateMap<BrandModel, Brand>();
             CreateMap<Brand, BrandModel>()
                 .ForMember(dest => dest.Active, opt => opt.Ignore());
+
+            CreateMap<ProducksRepository.Models.CategoryModel, CategoryVM>();
+            CreateMap<CategoryVM, ProducksRepository.Models.CategoryModel>();
+            CreateMap<CategoryModel, Category>();
+            CreateMap<Category, CategoryModel>();
+
+            CreateMap<ProducksRepository.Models.ProductModel, ProductVM>();
+            CreateMap<ProductVM, ProducksRepository.Models.ProductModel>();
+            CreateMap<ProductModel, Product>();
+            CreateMap<Product, ProductModel>();
         }
     }
 }
