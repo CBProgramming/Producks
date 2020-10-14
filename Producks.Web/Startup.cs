@@ -45,6 +45,7 @@ namespace Producks.Web
             services.AddScoped<IProductUndercutters, ProductUndercutters>();
             services.AddScoped<IBrandRepository, BrandRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IProductRepository, ProductRepository>();
 
             services.AddMvc()
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);

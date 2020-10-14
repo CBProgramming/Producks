@@ -15,13 +15,11 @@ namespace Producks.Web.Controllers
 {
     public class BrandsController : Controller
     {
-        private readonly StoreDb _context;
         private readonly IBrandRepository _brandRepository;
         private readonly IMapper _mapper;
 
-        public BrandsController(StoreDb context, IBrandRepository brandRepository, IMapper mapper)
+        public BrandsController(IBrandRepository brandRepository, IMapper mapper)
         {
-            _context = context;
             _brandRepository = brandRepository;
             _mapper = mapper;
         }

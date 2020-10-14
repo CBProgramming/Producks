@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Producks.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,8 +15,8 @@ namespace ProducksRepository.Models
         public string Description { get; set; }
         public double Price { get; set; }
         public int StockLevel { get; set; }
-        public bool Active { get; set; }
-        public string Category { get; set; }
-        public string Brand { get; set; }
+        public bool Active { get; set; } = true;
+        public Category Category { get; set; }
+        public Brand Brand { get; set; }
     }
 }

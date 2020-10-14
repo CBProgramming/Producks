@@ -2,43 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Producks.Data;
 using Producks.Web.Models;
+using ProducksRepository;
+using ProducksRepository.Models;
 
 namespace Producks.Web.Controllers
 {
     public class ProductsController : Controller
     {
-        private readonly StoreDb _context;
+        private readonly IProductRepository _productRepository;
+        private readonly IBrandRepository _brandRepository;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
 
-        public ProductsController(StoreDb context)
+        public ProductsController(IProductRepository productRepository, IBrandRepository brandRepository, ICategoryRepository categoryRepository, IMapper mapper)
         {
-            _context = context;
+            _productRepository = productRepository;
+            _brandRepository = brandRepository;
+            _categoryRepository = categoryRepository;
+            _mapper = mapper;
         }
 
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            var storeDb = await _context.Products
-                .Where(p => p.Active == true)
-                .Select(p => new ProductVM
-            {
-                Id = p.Id,
-                CategoryId = p.CategoryId,
-                BrandId = p.BrandId,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price,
-                StockLevel = p.StockLevel,
-                Category = p.Category,
-                Brand = p.Brand
-            })
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .ToListAsync();
+            var storeDb = _mapper.Map<List<ProductVM>>(_productRepository.GetProducts());
             return View(storeDb);
         }
 
@@ -50,7 +43,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            ProductVM product = getProductVM(id).Result;
+            ProductVM product = _mapper.Map<ProductVM>(_productRepository.GetProduct(id));
             if (product == null)
             {
                 return NotFound();
@@ -62,8 +55,8 @@ namespace Producks.Web.Controllers
         // GET: Products/Create
         public IActionResult Create()
         {
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name");
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Description");
+            ViewData["BrandId"] = new SelectList(_brandRepository.GetBrands(), "Id", "Name");
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetCategories(), "Id", "Description");
             return View();
         }
 
@@ -74,14 +67,14 @@ namespace Producks.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,CategoryId,BrandId,Name,Description,Price,StockLevel,Active")] ProductVM product)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid
+                && !String.IsNullOrEmpty(product.Name)
+                && await _productRepository.CreateProduct(_mapper.Map<ProductModel>(product)))
             {
-                _context.Add(generateProduct(product));
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return base.RedirectToAction(nameof(Index));
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Description", product.CategoryId);
+            ViewData["BrandId"] = new SelectList(_brandRepository.GetBrands(), "Id", "Name", product.BrandId);
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetCategories(), "Id", "Description", product.CategoryId);
             return View(product);
         }
 
@@ -93,13 +86,13 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            ProductVM product = getProductVM(id).Result;
+            ProductVM product = _mapper.Map<ProductVM>(_productRepository.GetProduct(id));
             if (product == null)
             {
                 return NotFound();
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Description", product.CategoryId);
+            ViewData["BrandId"] = new SelectList(_brandRepository.GetBrands(), "Id", "Name", product.BrandId);
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetCategories(), "Id", "Description", product.CategoryId);
             return View(product);
         }
 
@@ -115,28 +108,15 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (ModelState.IsValid
+                && !String.IsNullOrEmpty(product.Name)
+                && await _productRepository.EditProduct(_mapper.Map<ProductModel>(product)))
             {
-                try
-                {
-                    _context.Update(generateProduct(product));
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProductExists(product.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+
+                return base.RedirectToAction(nameof(Index));
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Description", product.CategoryId);
+            ViewData["BrandId"] = new SelectList(_brandRepository.GetBrands(), "Id", "Name", product.BrandId);
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetCategories(), "Id", "Description", product.CategoryId);
             return View(product);
         }
 
@@ -147,7 +127,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            ProductVM product = getProductVM(id).Result;
+            ProductVM product = _mapper.Map<ProductVM>(_productRepository.GetProduct(id));
             if (product == null)
             {
                 return NotFound();
@@ -161,35 +141,11 @@ namespace Producks.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-            product.Active = false;
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool ProductExists(int id)
-        {
-            return _context.Products.Any(e => e.Id == id);
-        }
-
-        public async Task<ProductVM> getProductVM(int? id)
-        {
-            return await _context.Products
-                .Select(p => new ProductVM
-                {
-                    Id = p.Id,
-                    CategoryId = p.CategoryId,
-                    BrandId = p.BrandId,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    StockLevel = p.StockLevel,
-                    Category = p.Category,
-                    Brand = p.Brand
-                })
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            if (await _productRepository.DetelteProduct(id))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            return NotFound();
         }
 
         public Product generateProduct(ProductVM product)
