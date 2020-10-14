@@ -29,7 +29,7 @@ namespace Producks.Web.Controllers
         // GET: Brands
         public async Task<IActionResult> Index()
         {
-            var brands = _mapper.Map<IEnumerable<BrandVM>>(await _brandRepository.GetBrands());
+            var brands = _mapper.Map<List<BrandVM>>(_brandRepository.GetBrands());
             return View(brands);
         }
 
@@ -40,7 +40,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            BrandVM brandVM = _mapper.Map<BrandVM>(await _brandRepository.GetBrand(id));
+            BrandVM brandVM = _mapper.Map<BrandVM>(_brandRepository.GetBrand(id));
             if (brandVM == null)
             {
                 return NotFound();
@@ -67,7 +67,7 @@ namespace Producks.Web.Controllers
                 && !brand.Name.Equals("") 
                 && await _brandRepository.CreateBrand(_mapper.Map<BrandModel>(brand)))
             {
-                return RedirectToAction(nameof(Index));
+                return base.RedirectToAction(nameof(Index));
             }
             return View(brand);
         }
@@ -79,7 +79,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            BrandVM brandVM = _mapper.Map<BrandVM>(await _brandRepository.GetBrand(id));
+            BrandVM brandVM = _mapper.Map<BrandVM>(_brandRepository.GetBrand(id));
             if (brandVM == null)
             {
                 return NotFound();
@@ -100,10 +100,10 @@ namespace Producks.Web.Controllers
             }
             if (ModelState.IsValid
                 && brand.Name != null
-                && await _brandRepository.EditBrand(_mapper.Map<BrandModel>(brand)))
+                && await _brandRepository.EditBrand(_mapper.Map<BrandModel> (brand)))
             {
                 
-                return RedirectToAction(nameof(Index));
+                return base.RedirectToAction(nameof(Index));
             }
             return View(brand);
         }
@@ -115,7 +115,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            BrandVM brand = _mapper.Map<BrandVM>(await _brandRepository.GetBrand(id));
+            BrandVM brand = _mapper.Map<BrandVM>(_brandRepository.GetBrand(id));
             if (brand == null)
             {
                 return NotFound();

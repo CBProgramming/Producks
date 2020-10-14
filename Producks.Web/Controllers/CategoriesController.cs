@@ -2,35 +2,41 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Producks.Data;
 using Producks.Web.Models;
+using ProducksRepository;
 
 namespace Producks.Web.Controllers
 {
     public class CategoriesController : Controller
     {
         private readonly StoreDb _context;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
 
-        public CategoriesController(StoreDb context)
+        public CategoriesController(StoreDb context, ICategoryRepository categoryRepository, IMapper mapper)
         {
             _context = context;
+            _categoryRepository = categoryRepository;
+            _mapper = mapper;
         }
 
         // GET: Categories
         public async Task<IActionResult> Index()
         {
             var categories = await _context.Categories
-                .Where(c => c.Active == true)
-                .Select(c => new CategoryVM
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description,
-                })
-               .ToListAsync();
+    .Where(c => c.Active == true)
+    .Select(c => new CategoryVM
+    {
+        Id = c.Id,
+        Name = c.Name,
+        Description = c.Description,
+    })
+   .ToListAsync();
             return View(categories);
         }
 

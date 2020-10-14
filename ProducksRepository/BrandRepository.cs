@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Producks.Data;
 using ProducksRepository.Models;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace ProducksRepository
 {
@@ -13,17 +14,20 @@ namespace ProducksRepository
     {
 
         private readonly StoreDb _context;
+        private readonly IMapper _mapper;
 
-        public BrandRepository(StoreDb context)
+
+        public BrandRepository(StoreDb context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<bool> CreateBrand(BrandModel brand)
         {
             try
             {
-                _context.Add(generateBrand(brand));
+                _context.Add(_mapper.Map<Brand>(brand));
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -60,7 +64,7 @@ namespace ProducksRepository
         {
             try
             {
-                _context.Update(generateBrand(brand));
+                _context.Update(_mapper.Map<Brand>(brand));
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -77,40 +81,22 @@ namespace ProducksRepository
             }
         }
 
-        public Task<BrandModel> GetBrand(int? id)
+        public BrandModel GetBrand(int? id)
         {
-            var brand = _context.Brands
+            return _mapper.Map<Brand, BrandModel>(_context.Brands
                 .Where(b => b.Active == true)
-                .Select(b => new BrandModel
-                {
-                    Id = b.Id,
-                    Name = b.Name
-                })
-                .FirstOrDefaultAsync(b => b.Id == id);
-            return brand;
+                .FirstOrDefaultAsync(b => b.Id == id)
+                .Result);
         }
 
-        public Task<List<BrandModel>> GetBrands()
+        public List<BrandModel> GetBrands()
         {
             var brands = _context.Brands
                            .Where(b => b.Active == true)
-                           .Select(b => new BrandModel
-                           {
-                               Id = b.Id,
-                               Name = b.Name
-                           })
-                           .ToListAsync();
+                           .AsEnumerable()
+                           .Select(b => _mapper.Map<Brand, BrandModel>(b))
+                           .ToList();
             return brands;
-        }
-
-        public Brand generateBrand(BrandModel brand)
-        {
-            return new Brand
-            {
-                Id = brand.Id,
-                Name = brand.Name,
-                Active = true
-            };
         }
 
         private bool BrandExists(int id)

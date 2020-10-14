@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Producks.Data;
 using Producks.Web.Models;
 using ProducksRepository.Models;
 using System;
@@ -12,8 +13,12 @@ namespace Producks.Web
     {
         public UserProfile()
         {
-            CreateMap<BrandModel, BrandVM>();
-            CreateMap<BrandVM, BrandModel>();
+            CreateMap<ProducksRepository.Models.BrandModel, BrandVM>();
+            CreateMap<BrandVM, ProducksRepository.Models.BrandModel>();
+
+            CreateMap<BrandModel, Brand>();
+            CreateMap<Brand, BrandModel>()
+                .ForMember(dest => dest.Active, opt => opt.Ignore());
         }
     }
 }
