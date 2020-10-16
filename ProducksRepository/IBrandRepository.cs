@@ -8,8 +8,8 @@ namespace ProducksRepository
 {
     public interface IBrandRepository
     {
-        List<BrandModel> GetBrands();
-        BrandModel GetBrand(int? id);
+        Task<List<BrandModel>> GetBrands();
+        Task<BrandModel> GetBrand(int? id);
         Task<bool> CreateBrand(BrandModel brand);
         Task<bool> EditBrand(BrandModel brand);
         Task<bool> DetelteBrand(int? id);

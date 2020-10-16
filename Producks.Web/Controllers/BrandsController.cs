@@ -27,7 +27,7 @@ namespace Producks.Web.Controllers
         // GET: Brands
         public async Task<IActionResult> Index()
         {
-            var brands = _mapper.Map<List<BrandVM>>(_brandRepository.GetBrands());
+            var brands = _mapper.Map<List<BrandVM>>(await _brandRepository.GetBrands());
             return View(brands);
         }
 
@@ -38,7 +38,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            BrandVM brandVM = _mapper.Map<BrandVM>(_brandRepository.GetBrand(id));
+            BrandVM brandVM = _mapper.Map<BrandVM>(await _brandRepository.GetBrand(id));
             if (brandVM == null)
             {
                 return NotFound();
@@ -76,7 +76,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            BrandVM brandVM = _mapper.Map<BrandVM>(_brandRepository.GetBrand(id));
+            BrandVM brandVM = _mapper.Map<BrandVM>(await _brandRepository.GetBrand(id));
             if (brandVM == null)
             {
                 return NotFound();
@@ -112,7 +112,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            BrandVM brand = _mapper.Map<BrandVM>(_brandRepository.GetBrand(id));
+            BrandVM brand = _mapper.Map<BrandVM>(await _brandRepository.GetBrand(id));
             if (brand == null)
             {
                 return NotFound();

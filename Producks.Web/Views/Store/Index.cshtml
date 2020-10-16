@@ -29,7 +29,7 @@
                     @Html.DisplayFor(modelItem => item.Description)
                 </td>
                 <td>
-                    <a asp-action="ProductsByCategory" asp-route-id="@item.Name">View Products</a>
+                    @Html.ActionLink("View Products", "ProductsByCategory", new { id = item.Id, name = item.Name })
                 </td>
             </tr>
         }
@@ -55,7 +55,7 @@
                     @Html.DisplayFor(modelItem => item.Name)
                 </td>
                 <td>
-                    <a asp-action="ProductsByBrand" asp-route-id="@item.Name">View Products</a>
+                    @Html.ActionLink("View Products", "ProductsByBrand", new { id = item.Id, name = item.Name })
                 </td>
             </tr>
         }

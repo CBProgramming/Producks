@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Producks.Data;
 using Producks.Web.Models;
 using ProducksRepository;
 using ProducksRepository.Models;
@@ -31,8 +28,7 @@ namespace Producks.Web.Controllers
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            var storeDb = _mapper.Map<List<ProductVM>>(_productRepository.GetProducts());
-            return View(storeDb);
+            return View(_mapper.Map<IList<ProductModel>, IList<ProductVM>>(await _productRepository.GetProducts()));
         }
 
         // GET: Products/Details/5
@@ -43,7 +39,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            ProductVM product = _mapper.Map<ProductVM>(_productRepository.GetProduct(id));
+            ProductVM product = _mapper.Map<ProductVM>(await _productRepository.GetProduct(id));
             if (product == null)
             {
                 return NotFound();
@@ -53,10 +49,10 @@ namespace Producks.Web.Controllers
         }
 
         // GET: Products/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["BrandId"] = new SelectList(_brandRepository.GetBrands(), "Id", "Name");
-            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetCategories(), "Id", "Description");
+            ViewData["BrandId"] = new SelectList(await _brandRepository.GetBrands(), "Id", "Name");
+            ViewData["CategoryId"] = new SelectList(await _categoryRepository.GetCategories(), "Id", "Description");
             return View();
         }
 
@@ -73,8 +69,8 @@ namespace Producks.Web.Controllers
             {
                 return base.RedirectToAction(nameof(Index));
             }
-            ViewData["BrandId"] = new SelectList(_brandRepository.GetBrands(), "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetCategories(), "Id", "Description", product.CategoryId);
+            ViewData["BrandId"] = new SelectList(await _brandRepository.GetBrands(), "Id", "Name", product.BrandId);
+            ViewData["CategoryId"] = new SelectList(await _categoryRepository.GetCategories(), "Id", "Description", product.CategoryId);
             return View(product);
         }
 
@@ -86,13 +82,13 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            ProductVM product = _mapper.Map<ProductVM>(_productRepository.GetProduct(id));
+            ProductVM product = _mapper.Map<ProductVM>(await _productRepository.GetProduct(id));
             if (product == null)
             {
                 return NotFound();
             }
-            ViewData["BrandId"] = new SelectList(_brandRepository.GetBrands(), "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetCategories(), "Id", "Description", product.CategoryId);
+            ViewData["BrandId"] = new SelectList(await _brandRepository.GetBrands(), "Id", "Name", product.BrandId);
+            ViewData["CategoryId"] = new SelectList(await _categoryRepository.GetCategories(), "Id", "Description", product.CategoryId);
             return View(product);
         }
 
@@ -115,8 +111,8 @@ namespace Producks.Web.Controllers
 
                 return base.RedirectToAction(nameof(Index));
             }
-            ViewData["BrandId"] = new SelectList(_brandRepository.GetBrands(), "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetCategories(), "Id", "Description", product.CategoryId);
+            ViewData["BrandId"] = new SelectList(await _brandRepository.GetBrands(), "Id", "Name", product.BrandId);
+            ViewData["CategoryId"] = new SelectList(await _categoryRepository.GetCategories(), "Id", "Description", product.CategoryId);
             return View(product);
         }
 
@@ -127,7 +123,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            ProductVM product = _mapper.Map<ProductVM>(_productRepository.GetProduct(id));
+            ProductVM product = _mapper.Map<ProductVM>(await _productRepository.GetProduct(id));
             if (product == null)
             {
                 return NotFound();
@@ -146,22 +142,6 @@ namespace Producks.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return NotFound();
-        }
-
-        public Product generateProduct(ProductVM product)
-        {
-            return new Product
-            {
-                Id = product.Id,
-                CategoryId = product.CategoryId,
-                BrandId = product.BrandId,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                StockLevel = product.StockLevel,
-                Category = product.Category,
-                Brand = product.Brand
-            };
         }
     }
 }

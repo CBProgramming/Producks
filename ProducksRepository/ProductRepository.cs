@@ -79,17 +79,16 @@ namespace ProducksRepository
             }
         }
 
-        public ProductModel GetProduct(int? id)
+        public async Task<ProductModel> GetProduct(int? id)
         {
-            return _mapper.Map<Product, ProductModel>(_context.Products
+            return _mapper.Map<Product, ProductModel>(await _context.Products
                 .Where(b => b.Active == true)
                 .Include("Category")
                 .Include("Brand")
-                .FirstOrDefaultAsync(b => b.Id == id)
-                .Result);
+                .FirstOrDefaultAsync(b => b.Id == id));
         }
 
-        public List<ProductModel> GetProducts()
+        public async Task<List<ProductModel>> GetProducts()
         {
             var products = _context.Products
                            .Where(b => b.Active == true)
@@ -98,6 +97,32 @@ namespace ProducksRepository
                            .AsEnumerable()
                            .Select(b => _mapper.Map<Product, ProductModel>(b))
                            .ToList();
+            return products;
+        }
+
+        public async Task<List<ProductModel>> GetProductsByBrand(int? id)
+        {
+            var products = _context.Products
+               .Where(b => b.Active == true)
+               .Where(b => b.BrandId == id)
+               .Include("Category")
+               .Include("Brand")
+               .AsEnumerable()
+               .Select(b => _mapper.Map<Product, ProductModel>(b))
+               .ToList();
+            return products;
+        }
+
+        public async Task<List<ProductModel>> GetProductsByCategory(int? id)
+        {
+            var products = _context.Products
+               .Where(b => b.Active == true)
+               .Where(b => b.CategoryId == id)
+               .Include("Category")
+               .Include("Brand")
+               .AsEnumerable()
+               .Select(b => _mapper.Map<Product, ProductModel>(b))
+               .ToList();
             return products;
         }
 

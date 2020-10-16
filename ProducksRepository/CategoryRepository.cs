@@ -79,7 +79,7 @@ namespace ProducksRepository
             }
         }
 
-        public List<CategoryModel> GetCategories()
+        public async Task<List<CategoryModel>> GetCategories()
         {
             var categories = _context.Categories
                            .Where(b => b.Active == true)
@@ -89,7 +89,7 @@ namespace ProducksRepository
             return categories;
         }
 
-        public CategoryModel GetCategory(int? id)
+        public async Task<CategoryModel> GetCategory(int? id)
         {
             return _mapper.Map<Category, CategoryModel>(
                 _context.Categories

@@ -29,7 +29,7 @@ namespace Producks.Web.Controllers
         // GET: Categories
         public async Task<IActionResult> Index()
         {
-            var categories = _mapper.Map<List<CategoryVM>>(_categoryRepository.GetCategories());
+            var categories = _mapper.Map<List<CategoryVM>>(await _categoryRepository.GetCategories());
             return View(categories);
         }
 
@@ -41,7 +41,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            CategoryVM category = _mapper.Map<CategoryVM>(_categoryRepository.GetCategory(id));
+            CategoryVM category = _mapper.Map<CategoryVM>(await _categoryRepository.GetCategory(id));
             if (category == null)
             {
                 return NotFound();
@@ -81,7 +81,7 @@ namespace Producks.Web.Controllers
                 return NotFound();
             }
 
-            CategoryVM category = _mapper.Map<CategoryVM>(_categoryRepository.GetCategory(id));
+            CategoryVM category = _mapper.Map<CategoryVM>(await _categoryRepository.GetCategory(id));
             if (category == null)
             {
                 return NotFound();
@@ -118,7 +118,7 @@ namespace Producks.Web.Controllers
             {
                 return NotFound();
             }
-            CategoryVM category = _mapper.Map<CategoryVM>(_categoryRepository.GetCategory(id));
+            CategoryVM category = _mapper.Map<CategoryVM>(await _categoryRepository.GetCategory(id));
             if (category == null)
             {
                 return NotFound();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,14 +12,18 @@ using Producks.Data;
 using Producks.UndercuttersFacade;
 using Producks.UndercuttersFacade.Models;
 using Producks.Web.Models;
+using ProducksRepository;
+using ProducksRepository.Models;
 
 namespace Producks.Web.Controllers
 {
     public class StoreController : Controller
 
     {
-
-        private readonly StoreDb _context;
+        private readonly IProductRepository _productRepository;
+        private readonly IBrandRepository _brandRepository;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly ICategoryUndercutters undercuttersCategoryGetter;
         private readonly IBrandUndercutters undercuttersBrandGetter;
@@ -34,17 +39,21 @@ namespace Producks.Web.Controllers
         private List<BrandVM> mergedBrands;
         private List<CategoryVM> mergedCategories;
 
-        public StoreController(StoreDb context, 
-            IConfiguration configuration, 
+        public StoreController(StoreDb context,
+            IConfiguration configuration,
             ICategoryUndercutters _undercuttersCategoryGetter,
             IBrandUndercutters _undercuttersBrandGetter,
-            IProductUndercutters _undercuttersProductGetter)
+            IProductUndercutters _undercuttersProductGetter,
+            IProductRepository productRepository, IBrandRepository brandRepository, ICategoryRepository categoryRepository, IMapper mapper)
         {
-            _context = context;
             _configuration = configuration;
             undercuttersCategoryGetter = _undercuttersCategoryGetter;
             undercuttersBrandGetter = _undercuttersBrandGetter;
             undercuttersProductGetter = _undercuttersProductGetter;
+            _productRepository = productRepository;
+            _brandRepository = brandRepository;
+            _categoryRepository = categoryRepository;
+            _mapper = mapper;
             setupUndercutersClient();
         }
 
@@ -52,11 +61,11 @@ namespace Producks.Web.Controllers
         {
             //pull brands, categories and products and combine to display with local stuff
             //make some DTOs
-            localBrands = await generateLocalBrands();
+            localBrands = _mapper.Map<List<BrandVM>>(await _brandRepository.GetBrands());
             undercuttersBrands = await undercuttersBrandGetter.GetBrands();
             //undercuttersBrands = undercuttersBrands.ToList();
             mergeBrands();
-            localCategories = await generateLocalCategories();
+            localCategories = _mapper.Map<List<CategoryVM>>(await _categoryRepository.GetCategories());
             undercuttersCategories = await undercuttersCategoryGetter.GetCategories();
             mergeCategories();
             StoreIndexVM storeIndex = new StoreIndexVM
@@ -67,42 +76,28 @@ namespace Producks.Web.Controllers
             return View(storeIndex);
         }
 
-        public async Task<IActionResult> ProductsByCategory (string id)
+        public async Task<IActionResult> ProductsByCategory(string name, int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            localProducts = await generateLocalProducts();
-            localProducts = localProducts.Where(p => p.Category.Name.Equals(id));
-            undercuttersProducts = await undercuttersProductGetter.GetProductsByCategoryName(id);
+            localProducts = await getLocalProductsByCategory(id);
+            undercuttersProducts = await undercuttersProductGetter.GetProductsByCategoryName(name);
             mergeProducts();
             return View(mergedProducts);
         }
 
-        public async Task<IActionResult> ProductsByBrand(string id)
+        public async Task<IActionResult> ProductsByBrand(string name, int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-            localProducts = await generateLocalProducts();
-            localProducts = localProducts.Where(p => p.Brand.Name.Equals(id));
-            undercuttersProducts = await undercuttersProductGetter.GetProductsByBrandName(id);
+            localProducts = await getLocalProductsByBrand(id);
+            undercuttersProducts = await undercuttersProductGetter.GetProductsByBrandName(name);
             mergeProducts();
             return View(mergedProducts);
-        }
-
-        public async Task<CategoryVM> getCategoryVM(int? id)
-        {
-            return await _context.Categories
-                .Select(c => new CategoryVM
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description,
-                })
-                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public Producks.Data.Category generateCategory(CategoryVM category)
@@ -115,42 +110,12 @@ namespace Producks.Web.Controllers
             };
         }
 
-        public async Task<BrandVM> getBrandVM(int? id)
-        {
-            return await _context.Brands
-                .Select(b => new BrandVM
-                {
-                    Id = b.Id,
-                    Name = b.Name,
-                })
-                .FirstOrDefaultAsync(b => b.Id == id);
-        }
-
         private void setupUndercutersClient()
         {
             undercuttersClient = new HttpClient();
             undercuttersClient.BaseAddress = new Uri(_configuration["UndercuttersBaseUri"]);
             undercuttersClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             undercuttersClient.Timeout = TimeSpan.FromSeconds(5);
-        }
-
-        public async Task<IEnumerable<ProductVM>> generateLocalProducts()
-        {
-            return await _context.Products
-                 .Where(p => p.Active == true)
-                .Select(p => new ProductVM
-                {
-                    Id = p.Id,
-                    CategoryId = p.CategoryId,
-                    BrandId = p.BrandId,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    StockLevel = p.StockLevel,
-                    Category = p.Category,
-                    Brand = p.Brand
-                })
-                .ToListAsync();
         }
 
         private void mergeCategories()
@@ -226,35 +191,27 @@ namespace Producks.Web.Controllers
                     Description = undercuttersProduct.Description,
                     Price = undercuttersProduct.Price,
                     StockLevel = undercuttersProduct.StockLevel,
-                    //Category = undercuttersProduct.Category,
-                    //Brand = undercuttersProduct.Brand
                 });
             }
             mergedProducts.OrderBy(b => b.Name);
         }
 
-        private async Task<IEnumerable<CategoryVM>> generateLocalCategories()
+        private async Task<IList<ProductVM>> getLocalProducts()
         {
-            return await _context.Categories
-               .Where(b => b.Active == true)
-               .Select(c => new CategoryVM
-               {
-                   Id = c.Id,
-                   Name = c.Name,
-                   Description = c.Description,
-               })
-               .ToListAsync();
+            return _mapper.Map<IList<ProductModel>, IList<ProductVM>>(
+                await _productRepository.GetProducts());
         }
 
-        private async Task<IEnumerable<BrandVM>> generateLocalBrands()
+        private async Task<IList<ProductVM>> getLocalProductsByBrand(int? id)
         {
-            return await _context.Brands
-               .Select(b => new BrandVM
-               {
-                   Id = b.Id,
-                   Name = b.Name
-               })
-               .ToListAsync();
+            return _mapper.Map<IList<ProductModel>, IList<ProductVM>>(
+                await _productRepository.GetProductsByBrand(id));
+        }
+
+        private async Task<IList<ProductVM>> getLocalProductsByCategory(int? id)
+        {
+            return _mapper.Map<IList<ProductModel>, IList<ProductVM>>(
+                await _productRepository.GetProductsByCategory(id));
         }
     }
 }

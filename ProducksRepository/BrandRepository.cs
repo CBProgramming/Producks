@@ -81,7 +81,7 @@ namespace ProducksRepository
             }
         }
 
-        public BrandModel GetBrand(int? id)
+        public async Task<BrandModel> GetBrand(int? id)
         {
             return _mapper.Map<Brand, BrandModel>(_context.Brands
                 .Where(b => b.Active == true)
@@ -89,7 +89,7 @@ namespace ProducksRepository
                 .Result);
         }
 
-        public List<BrandModel> GetBrands()
+        public async Task<List<BrandModel>> GetBrands()
         {
             var brands = _context.Brands
                            .Where(b => b.Active == true)
